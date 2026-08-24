@@ -9,8 +9,10 @@ import aiofiles
 from database.session import Base, SessionLocal, engine
 from langchain_cloudflare import CloudflareWorkersAIEmbeddings
 from langchain_core.documents import Document
-from langchain_postgres import PGVector
+from langchain_postgres import PGEngine, PGVectorStore
 from schemas.db_models import DiseaseTreatment
+
+VECTOR_SIZE = 768
 
 
 async def init_tables():
@@ -59,16 +61,21 @@ async def seed_all():
         await session.commit()
         print(f"Successfully seeded {len(data)} SQL treatment records.")
 
-    # Ingest into PGVector via LangChain
+    # Ingest into PGVectorStore via LangChain
     print("Initializing pgvector store and embedding documents...")
 
     embeddings = CloudflareWorkersAIEmbeddings(model_name="@cf/baai/bge-base-en-v1.5")
+    pg_engine = PGEngine.from_engine(engine)
 
-    vector_store = PGVector(
-        embeddings=embeddings,
-        collection_name="paddy_diseases",
-        connection=engine,
-        use_jsonb=True,
+    await pg_engine.ainit_vectorstore_table(
+        table_name="paddy_diseases",
+        vector_size=VECTOR_SIZE,
+    )
+
+    vector_store = await PGVectorStore.create(
+        engine=pg_engine,
+        embedding_service=embeddings,
+        table_name="paddy_diseases",
     )
 
     await vector_store.aadd_documents(documents=vector_documents)

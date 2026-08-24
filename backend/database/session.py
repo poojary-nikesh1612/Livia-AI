@@ -6,7 +6,7 @@ from sqlalchemy.orm import DeclarativeBase
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    connect_args={"ssl": True},
+    connect_args={"sslmode": "require"},
     pool_pre_ping=True,
 )
 
