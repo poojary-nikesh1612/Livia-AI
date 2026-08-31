@@ -25,6 +25,7 @@ build/
 .coverage.*
 htmlcov/
 backend/scripts/raw_data/*
+tests
 
 
 # Node.js and React Native

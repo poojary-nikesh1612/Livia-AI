@@ -1,7 +1,6 @@
 """ai_core/tools/weather.py: Agricultural weather tool for LangGraph."""
 
 import httpx
-from langchain_core.tools import tool
 
 # WMO Weather interpretation codes
 WMO_DESCRIPTIONS = {
@@ -26,7 +25,6 @@ WMO_DESCRIPTIONS = {
 }
 
 
-@tool
 async def get_agricultural_weather(latitude: float, longitude: float) -> str:
     """
     Fetches comprehensive agricultural weather data for disease diagnosis and spray planning.

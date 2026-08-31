@@ -33,13 +33,13 @@ async def get_vector_store() -> PGVectorStore:
 
 
 async def search_disease_by_symptoms(
-    symptoms_query: str, valid_stages: list[str], k: int = 5
+    symptoms_query: str, valid_stage: str, k: int = 5
 ) -> list[dict[str, Any]]:
     """
     Performs a semantic vector search to diagnose a disease based on farmer symptoms.
     Returns the top 'k' closest matches.
     """
-    if not valid_stages:
+    if not valid_stage:
         return []
 
     try:
@@ -48,10 +48,7 @@ async def search_disease_by_symptoms(
             symptoms_query,
             k=k,
             filter={
-                "$or": [
-                    {"valid_stages": {"$like": f'%"{stage}"%'}}
-                    for stage in valid_stages
-                ]
+                "valid_stages": {"$like": f'%"{valid_stage}"%'}
             },
         )
 
