@@ -104,7 +104,7 @@ class PaddyGraphState(TypedDict, total=False):
     """Tracks loops to prevent infinite graph execution."""
 
     paused_by: str | None
-    """Records the exact node constant (e.g., ONBOARDING_NODE) that triggered the pause."""
+    """Records the exact node constant that triggered the pause."""
 
     # 9. Output
     final_diagnosis: str | None

@@ -3,8 +3,9 @@
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any
-
-from ai_core.constants import ONBOARDING_NODE
+import uuid
+from database.postgres_ai import create_crop_cycle
+from ai_core.constants import CONTEXT_LOADER_NODE
 from ai_core.llm_config import lightweight_llm
 from ai_core.state import PaddyGraphState
 from ai_core.utils.agronomy import calculate_paddy_stage
@@ -15,12 +16,13 @@ logger = logging.getLogger(__name__)
 # Prevent infinite loops
 MAX_RETRIES = 2
 
-def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
+async def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
     """
     Uses the lightweight Gemma model to parse fuzzy text into exact days.
     """
     farmer_answer = state.get("clarification_answer", "")
     retry_count = state.get("retry_count", 0)
+    user_id = state.get("user_id")
 
     logger.info(f"Extracting crop age from text: '{farmer_answer}'")
 
@@ -33,7 +35,7 @@ def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
     )
 
     try:
-        result: CropAgeExtraction = structured_llm.invoke(prompt)
+        result: CropAgeExtraction = structured_llm.ainvoke(prompt)
     except Exception:
         logger.exception(f"LLM parsing failed for input: '{farmer_answer}'")
         result = CropAgeExtraction(is_understood=False, age_in_days=None)
@@ -45,7 +47,7 @@ def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
         # Check for Max Retries
         if new_retry >= MAX_RETRIES:
             return {
-                "final_diagnosis": "I'm having trouble understanding the crop age. Let's start over when you're ready.",
+                "final_diagnosis": "I couldn't determine the crop age, so I had to stop. Please start again and tell me the crop age.",
                 "paused_by": "fatal_error",
                 "have_question": False,
             }
@@ -53,20 +55,29 @@ def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
         # First failure -> Ask again
         return {
             "have_question": True,
-            "clarifying_question": "I didn't quite get that. Could you say it simply like '45 days' or '3 weeks'?",
+            "clarifying_question": "I couldn't understand the crop age. Please tell me how old the crop is, for example, 45 days or 3 weeks.",
             "retry_count": new_retry,
-            "paused_by": ONBOARDING_NODE,
+            "paused_by": CONTEXT_LOADER_NODE,
             "clarification_answer": None,
         }
 
     age_days = result.age_in_days
-
     planting_date_obj = datetime.now(timezone.utc) - timedelta(days=age_days)
     planting_date_iso = planting_date_obj.strftime("%Y-%m-%d")
-
     crop_stage = calculate_paddy_stage(age_days)
 
+    new_cycle_id = None
+    if user_id:
+        try:
+            new_cycle_id = await create_crop_cycle(
+                user_id=uuid.UUID(str(user_id)), 
+                planting_date=planting_date_obj.date()
+            )
+        except Exception :
+            logger.exception("Failed to create crop cycle DB record")
+
     return {
+        "cycle_id": str(new_cycle_id) if new_cycle_id else None,
         "crop_age_days": age_days,
         "planting_date": planting_date_iso,
         "crop_stage": crop_stage,

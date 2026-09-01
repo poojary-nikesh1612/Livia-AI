@@ -1,11 +1,11 @@
-"""ai_core/nodes/context_loader.py: Initial state hydration node."""
+"""ai_core/nodes/context_loader_node.py: Initial state hydration node."""
 
 import logging
 from datetime import datetime, timezone
 from typing import Any
 
 from database.postgres_ai import get_active_crop_context, get_recent_chat_history
-
+from ai_core.constants import CONTEXT_LOADER_NODE
 from ai_core.state import PaddyGraphState
 from ai_core.utils.agronomy import calculate_paddy_stage
 
@@ -32,6 +32,9 @@ async def context_loader_node(state: PaddyGraphState) -> dict[str, Any]:
             "crop_age_days": None,
             "planting_date": None,
             "recent_chat_history": [],
+            "have_question": True,
+            "clarifying_question":"How many days old is your paddy crop?",
+            "paused_by": CONTEXT_LOADER_NODE,
         }
 
     cycle_id = crop_ctx["cycle_id"]

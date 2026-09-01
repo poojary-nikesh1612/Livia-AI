@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 def route_after_context_loader(state: PaddyGraphState) -> str:
     """
     Traffic cop after context is loaded.
-    If we don't know the crop cycle (cycle_id is None), route to onboarding.
+    If we don't know the crop cycle (cycle_id is None), route to human input.
     If we do, proceed directly to the main AI router.
     """
     if not state.get("cycle_id"):
-        return consts.ONBOARDING_NODE
+        return consts.HUMAN_INPUT_NODE
 
     return consts.ROUTER_NODE
 
@@ -37,8 +37,8 @@ def route_after_human_input(state: PaddyGraphState) -> str:
         logger.info("User failed to provide requested information. Routing to END.")
         return END
 
-    # Onboarding Phase
-    if paused_by == consts.ONBOARDING_NODE:
+    # crop Age Extraction Phase
+    if paused_by == consts.CONTEXT_LOADER_NODE:
         return consts.EXTRACT_CROP_AGE_NODE
 
     # Vision Phase

@@ -29,7 +29,7 @@ def request_image_node(state: PaddyGraphState) -> dict[str, Any]:
         if new_retry >= MAX_RETRIES:
             logger.warning("Image retry limit exceeded. Aborting.")
             return {
-                "final_diagnosis": "I cannot analyze these images. They are not clear. Please start again later and upload a clear photo of the plant.",
+                "final_diagnosis": "I couldn't analyze the photo because it was not clear. Please try again with a clear photo of the plant.",
                 "paused_by": "fatal_error",
                 "have_question": False,
                 "is_image_rejected": False,

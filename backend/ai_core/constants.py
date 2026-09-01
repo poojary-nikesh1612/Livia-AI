@@ -2,7 +2,6 @@
 
 # Node Names
 CONTEXT_LOADER_NODE = "context_loader_node"
-ONBOARDING_NODE = "onboarding_node"
 HUMAN_INPUT_NODE = "human_input_node"
 ROUTER_NODE = "router_node"
 VISION_NODE = "vision_node"

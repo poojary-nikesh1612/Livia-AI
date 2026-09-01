@@ -16,7 +16,6 @@ from ai_core.nodes import (
     general_chat_node,
     human_input_node,
     investigative_question_node,
-    onboarding_node,
     rag_search_node,
     request_image_node,
     reranker_node,
@@ -40,7 +39,6 @@ def build_uncompiled_graph() -> StateGraph:
     workflow = StateGraph(PaddyGraphState)
 
     workflow.add_node(consts.CONTEXT_LOADER_NODE, context_loader_node.context_loader_node)
-    workflow.add_node(consts.ONBOARDING_NODE, onboarding_node.onboarding_node)
     workflow.add_node(consts.HUMAN_INPUT_NODE, human_input_node.human_input_node)
     workflow.add_node(consts.ROUTER_NODE, router_node.router_node)
     workflow.add_node(consts.VISION_NODE, vision_node.vision_node)
@@ -86,12 +84,10 @@ def build_uncompiled_graph() -> StateGraph:
         consts.CONTEXT_LOADER_NODE,
         edges.route_after_context_loader,
         {
-            consts.ONBOARDING_NODE: consts.ONBOARDING_NODE,
+            consts.HUMAN_INPUT_NODE: consts.HUMAN_INPUT_NODE,
             consts.ROUTER_NODE: consts.ROUTER_NODE,
         },
     )
-
-    workflow.add_edge(consts.ONBOARDING_NODE, consts.HUMAN_INPUT_NODE)
 
     workflow.add_conditional_edges(
         consts.HUMAN_INPUT_NODE,

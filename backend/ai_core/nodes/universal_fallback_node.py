@@ -17,9 +17,7 @@ def universal_fallback_node(state: PaddyGraphState) -> dict[str, Any]:
 
     # Generalized response for failure.
     fallback_message = (
-        "I apologize, but I could not find a confident match or encountered an issue processing the data "
-        "for these specific symptoms. To ensure your crop gets the right care, please consult a local "
-        "agricultural expert or try again with clearer photos and descriptions."
+        "I couldn't understand the problem with your crop. Please try again with a clear photo and some details about the problem. You can also contact a local agricultural expert for help."
     )
 
     return {

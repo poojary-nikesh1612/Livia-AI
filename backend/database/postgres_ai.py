@@ -1,8 +1,8 @@
-"""database/postgres_ai.py: Fetches treatment guides and AI context from PostgreSQL."""
+"""database/postgres_ai.py: Handles PostgreSQL operations for ai_core."""
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
 from database.session import SessionLocal
@@ -18,6 +18,37 @@ from sqlalchemy import desc, select
 logger = logging.getLogger(__name__)
 
 
+# Creates a new crop cycle.
+async def create_crop_cycle(
+    user_id: uuid.UUID, planting_date: date
+) -> uuid.UUID | None:
+    """
+    Creates a new CropCycle record in the database.
+    Automatically calculates expected_harvest_date as 120 days from planting.
+    """
+    # Calculate 120 days for harvest
+    expected_harvest_date = planting_date + timedelta(days=120)
+
+    try:
+        async with SessionLocal() as db:
+            new_cycle = CropCycle(
+                user_id=user_id,
+                planting_date=planting_date,
+                expected_harvest_date=expected_harvest_date,
+            )
+
+            db.add(new_cycle)
+            await db.commit()
+
+            await db.refresh(new_cycle)
+
+            return new_cycle.cycle_id
+    except Exception:
+        logger.exception("Error while creating CropCycle")
+        return None
+
+
+# Fetches treatment details for a disease.
 async def get_treatment_by_disease_id(disease_id: str) -> dict[str, Any] | None:
     """
     Fetches exact treatment guides and weather constraints from the relational database.
@@ -47,6 +78,7 @@ async def get_treatment_by_disease_id(disease_id: str) -> dict[str, Any] | None:
             return None
 
 
+# Fetches the user's active crop context.
 async def get_active_crop_context(user_id: str) -> dict[str, Any] | None:
     """
     Fetches the active crop cycle and the farm's GPS coordinates.
@@ -85,6 +117,7 @@ async def get_active_crop_context(user_id: str) -> dict[str, Any] | None:
             return None
 
 
+# Fetches recent chat history for a crop cycle.
 async def get_recent_chat_history(
     cycle_id: str, limit: int = 6
 ) -> list[dict[str, str]]:
@@ -124,6 +157,7 @@ async def get_recent_chat_history(
             return "No previous history."
 
 
+# Fetches the crop's medical treatment timeline.
 async def get_medical_timeline(cycle_id: str) -> str | None:
     """
     Fetches the log of previous events and formats it into a
@@ -157,4 +191,7 @@ async def get_medical_timeline(cycle_id: str) -> str | None:
 
         except Exception:
             logger.exception(f"Failed to fetch medical timeline for cycle {cycle_id}")
+            return None
+            return None
+            return None
             return None

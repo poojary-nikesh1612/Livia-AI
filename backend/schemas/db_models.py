@@ -96,7 +96,10 @@ class ChatMessage(Base):
         nullable=False,
     )
     role = Column(String(50), nullable=False)
-    content = Column(Text, nullable=False)
+    category = Column(String(50), nullable=False, default="INITIAL_QUERY")
+    language_code = Column(String(10), nullable=False, default="en")
+    display_content = Column(Text, nullable=False)
+    english_content = Column(Text, nullable=False)
     image_urls = Column(ARRAY(String), default=list)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
@@ -108,7 +111,7 @@ class ChatMessage(Base):
     cycle = relationship("CropCycle", back_populates="chat_messages")
 
     def __repr__(self) -> str:
-        return f"<ChatMessage(id={self.message_id}, cycle_id={self.cycle_id})>"
+        return f"<ChatMessage(id={self.message_id}, cycle_id={self.cycle_id}, role={self.role!r}, category={self.category!r})>"
 
 
 class DiseaseTreatment(Base):

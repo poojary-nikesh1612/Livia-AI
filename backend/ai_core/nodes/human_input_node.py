@@ -5,14 +5,14 @@ from typing import Any
 
 from ai_core.constants import (
     INVESTIGATIVE_QUESTION_NODE,
-    ONBOARDING_NODE,
+    CONTEXT_LOADER_NODE,
     REQUEST_IMAGE_NODE,
 )
 from ai_core.state import PaddyGraphState
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PAUSE_NODES = {ONBOARDING_NODE, REQUEST_IMAGE_NODE,INVESTIGATIVE_QUESTION_NODE}
+SYSTEM_PAUSE_NODES = {CONTEXT_LOADER_NODE, REQUEST_IMAGE_NODE,INVESTIGATIVE_QUESTION_NODE}
 
 
 async def human_input_node(state: PaddyGraphState) -> dict[str, Any]:
@@ -35,9 +35,9 @@ async def human_input_node(state: PaddyGraphState) -> dict[str, Any]:
         if not new_images:
             # The user ignored our request for an image!
             logger.warning("User failed to provide requested image. Aborting.")
-            updates["paused_by"] = ("fatal_error",)
+            updates["paused_by"] = ("fatal_error")
             updates["final_diagnosis"] = (
-                "I cannot proceed without a photo. Please start a new request and ensure you attach a clear image."
+                "I need a photo to continue. Please start again with a clear photo."
             )
             return updates
         else:
