@@ -20,5 +20,8 @@ class Settings:
     CLOUDFLARE_ACCOUNT_ID: str = os.getenv("CLOUDFLARE_ACCOUNT_ID", "")
     CLOUDFLARE_API_TOKEN: str = os.getenv("CLOUDFLARE_API_TOKEN", "")
 
+    # Sarvam API Key
+    SARVAM_API_KEY: str = os.getenv("SARVAM_API_KEY", "")
+
 
 settings = Settings()
