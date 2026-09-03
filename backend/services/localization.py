@@ -3,7 +3,7 @@
 import logging
 
 from services.dictionaries import AGRI_GLOSSARY, EXACT_STRING_TRANSLATIONS
-from services.llm_translator import translator_llm
+from services.service_llms import translator_llm
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +42,9 @@ Translate the following English diagnostic note into language code '{target_lang
 
 MANDATORY RULES:
 1. TERMINOLOGY & DISEASE NAMING:
-   - When any crop disease name appears from the glossary, write the native term followed immediately by its English name in colloquial phrasing.
-     For Kannada ('kn'), format it exactly like this:
-     "[Native Name] ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ \"[English Name]\" ಅಂತ ಕರೀತಾರೆ"
-     Example: "ಬೆಂಕಿ ರೋಗ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ \"Rice Blast\" ಅಂತ ಕರೀತಾರೆ"
+   - FIRST OCCURRENCE: When a crop disease from the glossary is mentioned for the very first time, integrate both the native and English names smoothly into a natural, conversational sentence (e.g., "Your crop is affected by [Native Name], which is known as [English Name] in English.").
+   - NO PARENTHESES: Do NOT use parentheses () or brackets [] to insert the English name. The sentence must flow naturally.
+   - SUBSEQUENT OCCURRENCES: For all later mentions of the same disease in the text, use ONLY the native name. Do not repeat the English name.
    - Reference Glossary:
 {glossary_rules}
 

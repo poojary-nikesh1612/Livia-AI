@@ -34,6 +34,7 @@ class User(Base):
     cycles = relationship(
         "CropCycle", back_populates="user", cascade="all, delete-orphan"
     )
+    chat_messages = relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return f"<User(id={self.user_id}, mobile_number={self.mobile_number!r})>"
@@ -90,10 +91,17 @@ class ChatMessage(Base):
     __tablename__ = "chat_messages"
 
     message_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(
+        UUID(as_uuid=True), 
+        ForeignKey("users.user_id", ondelete="CASCADE"), 
+        nullable=False, 
+        index=True
+    )
+    thread_id = Column(String(255), nullable=False, index=True)
     cycle_id = Column(
         UUID(as_uuid=True),
         ForeignKey("crop_cycles.cycle_id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
     role = Column(String(50), nullable=False)
     category = Column(String(50), nullable=False, default="INITIAL_QUERY")
@@ -108,6 +116,7 @@ class ChatMessage(Base):
     )
 
     # Relationships
+    user = relationship("User", back_populates="chat_messages")
     cycle = relationship("CropCycle", back_populates="chat_messages")
 
     def __repr__(self) -> str:

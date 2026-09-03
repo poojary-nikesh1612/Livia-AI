@@ -5,7 +5,6 @@ import uuid
 from datetime import date, datetime, timedelta, timezone
 from typing import Any
 
-from database.session import SessionLocal
 from schemas.db_models import (
     ChatMessage,
     CropCycle,
@@ -14,6 +13,8 @@ from schemas.db_models import (
     User,
 )
 from sqlalchemy import desc, select
+
+from database.session import SessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ async def get_recent_chat_history(
 ) -> list[dict[str, str]]:
     """
     Fetches the last N messages for the active cycle and formats them
-     into a single readable string for LLM prompts.
+    into a single readable string for LLM prompts.
     """
     async with SessionLocal() as session:
         try:
@@ -131,7 +132,10 @@ async def get_recent_chat_history(
 
             stmt = (
                 select(ChatMessage)
-                .where(ChatMessage.cycle_id == cycle_uuid)
+                .where(
+                    ChatMessage.cycle_id == cycle_uuid,
+                    ChatMessage.category.in_(["INITIAL_QUERY", "FINAL_DIAGNOSIS"]),
+                )
                 .order_by(desc(ChatMessage.created_at))
                 .limit(limit)
             )
@@ -144,7 +148,7 @@ async def get_recent_chat_history(
 
             formatted_history = "\n".join(
                 [
-                    f"{msg.role.capitalize()}: {msg.content}"
+                    f"{msg.role.capitalize()}: {msg.english_content}"
                     for msg in reversed(messages)
                 ]
             )
@@ -191,7 +195,4 @@ async def get_medical_timeline(cycle_id: str) -> str | None:
 
         except Exception:
             logger.exception(f"Failed to fetch medical timeline for cycle {cycle_id}")
-            return None
-            return None
-            return None
             return None
