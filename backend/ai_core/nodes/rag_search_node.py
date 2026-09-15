@@ -3,8 +3,9 @@
 import logging
 from typing import Any
 
-from ai_core.state import PaddyGraphState
 from database.vector_db import search_disease_by_symptoms
+
+from ai_core.state import PaddyGraphState
 
 logger = logging.getLogger(__name__)
 
@@ -17,19 +18,17 @@ async def rag_search_node(state: PaddyGraphState) -> dict[str, Any]:
     logger.info("---RAG SEARCH NODE---")
 
     symptoms_query = state.get("aligned_symptom_profile", "")
-    crop_stage = state.get("crop_stage")
+    valid_stage = state.get("crop_stage") or ""
 
     # Empty Query
     if not symptoms_query:
         logger.warning("No aligned_symptom_profile found in state. Skipping search.")
         return {"retrieved_candidate_chunks": []}
 
-    # Extract and format the crop stage
-    valid_stage =""
-    if crop_stage:
-        valid_stage = crop_stage.value
-    else:
-        logger.warning("No crop_stage found in state. Vector search may return empty.")
+
+    if not valid_stage:
+         logger.warning("No crop_stage found in state. Vector search may return empty.")
+       
 
     logger.info(
         f"Executing RAG Search. Stage: {valid_stage} | Query: '{symptoms_query[:75]}...'"

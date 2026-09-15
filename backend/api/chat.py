@@ -45,6 +45,7 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
         )
         state = await app.aget_state(config)
         is_resuming = bool(state.next)
+        previous_cycle_id = state.values.get("cycle_id")
 
         if is_resuming:
             # Resuming graph from a Human-In-The-Loop pause
@@ -69,6 +70,7 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
 
         final_state = await app.aget_state(config)
         is_complete = len(final_state.next) == 0
+        current_cycle_id = final_state.values.get("cycle_id")
 
         # Extract the English response from the graph's state
         english_output = (
@@ -84,10 +86,7 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
     native_ai_text = await translate_english_to_native(english_output, target_lang)
     audio_base64 = await generate_speech_base64(native_ai_text, target_lang)
 
-    # ASYNC BACKGROUND WORKERS (DB Logging & Supabase)
-    current_cycle_id = final_state.values.get("cycle_id")
-
-    # ALWAYS Save User Input instantly
+    # Save User Input 
     background_tasks.add_task(
         process_and_save_chat,
         user_id=request.user_id,
@@ -101,7 +100,7 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
         images_base64=request.images,
     )
 
-    # ALWAYS Save AI Response instantly
+    # Save AI Response
     background_tasks.add_task(
         process_and_save_chat,
         user_id=request.user_id,
@@ -116,7 +115,7 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
     )
 
     # Backfill early history if cycle_id now exists
-    if current_cycle_id:
+    if not previous_cycle_id and current_cycle_id:
         background_tasks.add_task(
             backfill_cycle_id, request.thread_id, current_cycle_id
         )
