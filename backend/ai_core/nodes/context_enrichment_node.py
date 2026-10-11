@@ -3,11 +3,12 @@
 import logging
 from typing import Any
 
-from ai_core.state import PaddyGraphState
-from ai_core.utils.weather import get_agricultural_weather
 from database.postgres_ai import get_medical_timeline
 from langsmith import traceable
 from tenacity import retry, stop_after_attempt, wait_exponential
+
+from ai_core.state import PaddyGraphState
+from ai_core.utils.weather import get_agricultural_weather
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +16,8 @@ logger = logging.getLogger(__name__)
 # This will retry up to 3 times, waiting 2s, 4s, then 8s between tries
 @traceable(name="Fetch Open-Meteo API")
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-def get_weather_with_retry(lat: float, lon: float) -> str:
-    return get_agricultural_weather(lat, lon)
+async def get_weather_with_retry(lat: float, lon: float) -> str:
+    return await get_agricultural_weather(lat, lon)
 
 
 async def context_enrichment_node(state: PaddyGraphState) -> dict[str, Any]:
@@ -25,7 +26,7 @@ async def context_enrichment_node(state: PaddyGraphState) -> dict[str, Any]:
     Fails safely if APIs go down.
     """
     logger.info("---CONTEXT ENRICHMENT NODE---")
-    location=state.get("location")
+    location = state.get("location")
     lat = location.get("lat")
     lon = location.get("lon")
     cycle_id = state.get("cycle_id")

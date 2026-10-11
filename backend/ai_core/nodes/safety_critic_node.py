@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 # Prevent infinite loops
 MAX_RETRIES = 3
 
+
 async def safety_critic_node(state: PaddyGraphState) -> dict[str, Any]:
     """
     Evaluates the generated diagnosis for hallucination, safety, and TTS formatting.
@@ -29,12 +30,13 @@ async def safety_critic_node(state: PaddyGraphState) -> dict[str, Any]:
         return {
             "is_approved": False,
             "critic_feedback": "MAX_RETRIES_REACHED",
-            "retry_count": new_retry_count
+            "retry_count": new_retry_count,
         }
 
     # Gather state variables
     draft = state.get("final_diagnosis", "")
     treatment_guide_doc = state.get("treatment_guide_doc", "")
+    medical_timeline = state.get("medical_timeline", "No previous treatments.")
     weather_constraints = state.get("weather_constraints", {})
     weather_context = state.get("weather_context", "")
     crop_age_days = state.get("crop_age_days", "Unknown")
@@ -42,18 +44,21 @@ async def safety_critic_node(state: PaddyGraphState) -> dict[str, Any]:
 
     try:
         # Invoke Critic LLM
-        evaluation = await safety_critic_chain.ainvoke({
-            "treatment_guide_doc": treatment_guide_doc,
-            "weather_constraints": weather_constraints,
-            "weather_context": weather_context,
-            "crop_age_days": crop_age_days,
-            "crop_stage": crop_stage,
-            "final_diagnosis": draft
-        })
-        
+        evaluation = await safety_critic_chain.ainvoke(
+            {
+                "treatment_guide_doc": treatment_guide_doc,
+                "medical_timeline": medical_timeline,
+                "weather_constraints": weather_constraints,
+                "weather_context": weather_context,
+                "crop_age_days": crop_age_days,
+                "crop_stage": crop_stage,
+                "final_diagnosis": draft,
+            }
+        )
+
         is_approved = evaluation.is_approved
         critic_feedback = evaluation.critic_feedback
-        
+
     except Exception:
         logger.exception("Critic LLM failed. Defaulting to rejection for safety.")
         is_approved = False
@@ -68,5 +73,5 @@ async def safety_critic_node(state: PaddyGraphState) -> dict[str, Any]:
     return {
         "is_approved": is_approved,
         "critic_feedback": critic_feedback,
-        "retry_count": new_retry_count
-    }    
+        "retry_count": new_retry_count,
+    }
