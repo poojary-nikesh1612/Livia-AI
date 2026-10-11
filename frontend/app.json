@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "Livia AI",
+    "slug": "livia-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/app-logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/app-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.liviaai.app",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Livia AI needs camera access so you can photograph rice crop leaves for disease diagnosis.",
+        "NSMicrophoneUsageDescription": "Livia AI needs microphone access so you can record voice questions in English or Kannada.",
+        "NSPhotoLibraryUsageDescription": "Livia AI needs photo library access so you can attach crop leaf photos for diagnosis."
+      }
+    },
+    "android": {
+      "package": "com.liviaai.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app-logo.png",
+        "backgroundColor": "#FFFFFF"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/app-logo.png"
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Livia AI to access your photos to select rice crop images for diagnosis.",
+          "cameraPermission": "Allow Livia AI to access your camera to capture rice leaf photos."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Allow Livia AI to access your microphone for voice queries in English and Kannada."
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "aade5a1a-3a68-4baf-9186-9a2a2b303fd2"
+      }
+    }
+  }
+}

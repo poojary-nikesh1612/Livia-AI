@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+frontend/eas.json
 
 # Python backend
 __pycache__/
@@ -38,9 +39,14 @@ pnpm-debug.log*
 .yarn/
 .pnp.*
 
-# React Native / Metro
+# React Native / Metro / Expo
 .metro-health-check*
 .expo/
+.expo-shared/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
+*.orig.*
 *.jks
 *.p8
 *.p12
