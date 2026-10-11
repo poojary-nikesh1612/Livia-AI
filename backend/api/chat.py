@@ -32,6 +32,8 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
         user_native = await speech_to_native_text(request.audio_base64)
         if not user_native:
             raise HTTPException(status_code=400, detail="Voice recognition failed.")
+    elif request.text.strip():
+        user_native = request.text.strip()
 
     # Translate Native -> English for LangGraph
     user_english = ""

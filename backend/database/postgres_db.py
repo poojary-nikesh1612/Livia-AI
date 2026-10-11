@@ -3,9 +3,10 @@
 import logging
 import uuid
 
-from database.session import SessionLocal
 from schemas.db_models import ChatMessage, CropMedicalLog
-from sqlalchemy import update
+from sqlalchemy import select, update
+
+from database.session import SessionLocal
 
 logger = logging.getLogger(__name__)
 
@@ -49,9 +50,31 @@ async def save_chat_message(
     except Exception:
         logger.exception("Error while saving chat message")
 
+
+# Get chat messages.
+async def get_chat_messages(user_id: uuid.UUID) -> list[dict[str, str | list[str]]]:
+    """Fetch a user's chat messages from oldest to newest."""
+    async with SessionLocal() as db:
+        result = await db.execute(
+            select(ChatMessage)
+            .where(ChatMessage.user_id == user_id)
+            .order_by(ChatMessage.created_at.asc(), ChatMessage.message_id.asc())
+        )
+        messages = result.scalars().all()
+
+    return [
+        {
+            "role": message.role,
+            "display_content": message.display_content,
+            "language_code": message.language_code,
+            "images": message.image_urls or [],
+        }
+        for message in messages
+    ]
+
+
 # Updating cycle_id for pre-cycle messages
-async def backfill_cycle_id( thread_id: str,
-    cycle_id: uuid.UUID):
+async def backfill_cycle_id(thread_id: str, cycle_id: uuid.UUID):
     """Links all early 'pre-cycle' messages to the new cycle_id once it is available."""
     try:
         async with SessionLocal() as db:

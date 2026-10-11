@@ -1,6 +1,6 @@
 """main.py: Application entry point for Livia-AI Backend."""
 
-from api import chat, voice
+from api import chat, chat_history, voice
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,7 +13,7 @@ app = FastAPI(
 # Configure CORS for frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -21,6 +21,7 @@ app.add_middleware(
 
 # Register API routers
 app.include_router(chat.router, prefix="/api/v1", tags=["Chat"])
+app.include_router(chat_history.router, prefix="/api/v1", tags=["Chat"])
 app.include_router(voice.router, prefix="/api/v1", tags=["Voice"])
 
 
