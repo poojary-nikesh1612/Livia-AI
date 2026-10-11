@@ -188,15 +188,42 @@ def route_after_rag_search(state: PaddyGraphState) -> str:
     return consts.RERANKER_NODE
 
 
+# Confidence and tie-breaker thresholds for Reranker routing
+MIN_CONFIDENCE_SCORE = 0.85
+MIN_SCORE_MARGIN = 0.08
+
+
 # Routing function after Reranker node
 def route_after_reranking(state: PaddyGraphState) -> str:
-    score = state.get("top_candidate_score", 0.0)
+    score = float(state.get("top_candidate_score") or 0.0)
 
-    if score >= 0.85:
-        return consts.FETCH_TREATMENT_NODE
-    else:
-        # If failed to get a confident match, we go to ask a targeted question
+    if score < MIN_CONFIDENCE_SCORE:
+        logger.info(
+            f"Traffic Control: Top score ({score:.4f}) is below threshold ({MIN_CONFIDENCE_SCORE}). "
+            f"Routing to {consts.INVESTIGATIVE_QUESTION_NODE}."
+        )
         return consts.INVESTIGATIVE_QUESTION_NODE
+
+    # Check margin between Top-1 and Top-2 candidates if a second candidate exists
+    chunks = state.get("retrieved_candidate_chunks") or []
+    if len(chunks) >= 2:
+        second_score_raw = chunks[1].get("metadata", {}).get("relevance_score")
+        if second_score_raw is not None:
+            second_score = float(second_score_raw)
+            score_diff = score - second_score
+            if score_diff < MIN_SCORE_MARGIN:
+                logger.info(
+                    f"Traffic Control: Top-1 ({score:.4f}) and Top-2 ({second_score:.4f}) "
+                    f"difference ({score_diff:.4f}) is below margin threshold ({MIN_SCORE_MARGIN}). "
+                    f"Routing to {consts.INVESTIGATIVE_QUESTION_NODE} for tie-breaking clarification."
+                )
+                return consts.INVESTIGATIVE_QUESTION_NODE
+
+    logger.info(
+        f"Traffic Control: Confident match achieved (Top-1 Score: {score:.4f}). "
+        f"Routing to {consts.FETCH_TREATMENT_NODE}."
+    )
+    return consts.FETCH_TREATMENT_NODE
 
 
 # Routing function after Investigative Question node

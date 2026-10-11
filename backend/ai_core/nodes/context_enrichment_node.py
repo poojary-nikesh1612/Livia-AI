@@ -26,14 +26,14 @@ async def context_enrichment_node(state: PaddyGraphState) -> dict[str, Any]:
     Fails safely if APIs go down.
     """
     logger.info("---CONTEXT ENRICHMENT NODE---")
-    location = state.get("location")
+    location = state.get("location") or {}
     lat = location.get("lat")
     lon = location.get("lon")
     cycle_id = state.get("cycle_id")
 
     # --- FETCH WEATHER ---
     weather_data = "Weather data currently unavailable."
-    if lat and lon:
+    if lat is not None and lon is not None:
         try:
             logger.info(f"Fetching weather for Lat: {lat}, Lon: {lon}")
             weather_data = await get_weather_with_retry(lat, lon)
@@ -41,7 +41,7 @@ async def context_enrichment_node(state: PaddyGraphState) -> dict[str, Any]:
             logger.exception("Weather API failed after retries. Using fallback.")
             weather_data = (
                 "Weather data is currently unavailable due to a network error. "
-                "CRITICAL: Advise the farmer to manually check weather conditions."
+                "CRITICAL: Advise the farmer to manually check weather conditions "
                 "before applying any treatments."
             )
     else:

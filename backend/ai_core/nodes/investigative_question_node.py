@@ -15,9 +15,10 @@ MAX_RETRIES = 3
 
 def investigative_question_node(state: PaddyGraphState) -> dict[str, Any]:
     """
-    Triggered when RAG candidates score below the confidence threshold.
-    Analyzes the low-confidence chunks and asks the farmer an open-ended, 
-    farmer-friendly question to gather more diagnostic details.
+    Triggered when RAG candidates score below the confidence threshold (0.85) or when
+    the Top-1 and Top-2 candidates have a narrow score margin (< 0.08).
+    Analyzes the candidates and asks the farmer an open-ended, farmer-friendly
+    question to gather missing or differentiating diagnostic details.
     """
     logger.info("---INVESTIGATIVE QUESTION NODE---")
 

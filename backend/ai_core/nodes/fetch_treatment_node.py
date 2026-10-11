@@ -33,17 +33,19 @@ async def fetch_treatment_node(state: PaddyGraphState) -> dict[str, Any]:
         # Execute the direct DB lookup
         record = await get_treatment_by_disease_id(disease_id)
 
-        # Map the dictionary from the DB to state
+        # Map the dictionary from the DB to state and reset retry_count for downstream Safety Critic
         return {
-            "disease_name": record.get("disease_name"),
-            "treatment_guide_doc": record.get("treatment_guide"),
-            "weather_constraints": record.get("weather_constraints"),
+            "disease_name": record.get("disease_name") if record else None,
+            "treatment_guide_doc": record.get("treatment_guide") if record else None,
+            "weather_constraints": record.get("weather_constraints") if record else None,
+            "retry_count": 0,
         }
 
     except Exception:
         logger.exception(f"Database lookup failed for disease_id {disease_id}")
         return {
             "disease_name": None,
-            "treatment_guide_doc":None,
+            "treatment_guide_doc": None,
             "weather_constraints": None,
+            "retry_count": 0,
         }

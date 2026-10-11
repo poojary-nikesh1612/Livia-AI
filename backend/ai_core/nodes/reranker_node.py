@@ -50,10 +50,23 @@ async def reranker_node(state: PaddyGraphState) -> dict[str, Any]:
 
     top_disease_id = top_metadata.get("disease_id")
     top_score = top_metadata.get("relevance_score")
+    second_score = (
+        reranked_chunks[1].get("metadata", {}).get("relevance_score")
+        if len(reranked_chunks) >= 2
+        else None
+    )
+
+    top_score_str = f"{top_score:.4f}" if top_score is not None else "N/A"
+    second_score_str = f"{second_score:.4f}" if second_score is not None else "N/A"
+    margin_str = (
+        f"{(float(top_score) - float(second_score)):.4f}"
+        if (top_score is not None and second_score is not None)
+        else "N/A"
+    )
 
     logger.info(
         f"Reranking complete. Top Match Disease ID: {top_disease_id} "
-        f"(Score: {top_score:.4f} if top_score else 'N/A')"
+        f"(Top-1 Score: {top_score_str}, Top-2 Score: {second_score_str}, Margin: {margin_str})"
     )
 
     # Return updated fields to the graph state

@@ -23,7 +23,7 @@ async def human_input_node(state: PaddyGraphState) -> dict[str, Any]:
     farmer_answer = state.get("clarification_answer")
     question_asked = state.get("clarifying_question")
     paused_by = state.get("paused_by")
-    existing_histories = state.get("clarification_history", {})
+    existing_history = state.get("clarification_history") or []
     new_images = state.get("new_uploaded_images", [])
 
     updates: dict[str, Any] = {
@@ -35,7 +35,7 @@ async def human_input_node(state: PaddyGraphState) -> dict[str, Any]:
         if not new_images:
             # The user ignored our request for an image!
             logger.warning("User failed to provide requested image. Aborting.")
-            updates["paused_by"] = ("fatal_error")
+            updates["paused_by"] = "fatal_error"
             updates["final_diagnosis"] = (
                 "I need a photo to continue. Please start again with a clear photo."
             )
@@ -53,16 +53,7 @@ async def human_input_node(state: PaddyGraphState) -> dict[str, Any]:
             new_entries.append({"role": "user", "content": farmer_answer})
 
         if new_entries:
-            # 1. Get the specific history for THIS node (or start fresh if it's new)
-            current_node_history = existing_histories.get(paused_by, [])
-
-            # 2. Make a copy of the whole dictionary
-            new_histories = dict(existing_histories)
-
-            # 3. Update ONLY this node's history
-            new_histories[paused_by] = current_node_history + new_entries
-
-            # 4. Save it back to state
-            updates["clarification_history"] = new_histories
+            history_list = list(existing_history) if isinstance(existing_history, list) else []
+            updates["clarification_history"] = history_list + new_entries
 
     return updates

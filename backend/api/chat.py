@@ -50,14 +50,18 @@ async def chat_endpoint(request: ChatRequest, background_tasks: BackgroundTasks)
         previous_cycle_id = state.values.get("cycle_id")
 
         if is_resuming:
-            # Resuming graph from a Human-In-The-Loop pause
-            payload = {"have_question": False}
+            # Resuming graph from a Human-In-The-Loop pause.
+            # Do NOT set have_question=False here because aupdate_state re-evaluates
+            # the previous node's conditional edge before human_input_node runs;
+            # human_input_node itself resets have_question=False upon execution.
+            payload: dict = {}
             if user_english:
                 payload["clarification_answer"] = user_english
             if request.images:
                 payload["new_uploaded_images"] = request.images
 
-            await app.aupdate_state(config, payload)
+            if payload:
+                await app.aupdate_state(config, payload)
             await app.ainvoke(None, config)
         else:
             # Starting fresh graph execution
