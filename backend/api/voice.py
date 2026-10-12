@@ -26,6 +26,8 @@ async def stream_replay_audio(request: VoiceReplayRequest):
 
         return Response(content=audio_bytes, media_type="audio/mpeg")
 
+    except HTTPException:
+        raise
     except Exception:
         logger.exception("Voice synthesis failed during replay.")
         raise HTTPException(
