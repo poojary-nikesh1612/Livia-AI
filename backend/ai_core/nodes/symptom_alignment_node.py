@@ -10,7 +10,7 @@ from ai_core.state import PaddyGraphState
 logger = logging.getLogger(__name__)
 
 # Prevent infinite loops
-MAX_RETRIES = 3
+MAX_RETRIES = 8
 
 def symptom_alignment_node(state: PaddyGraphState) -> dict[str, Any]:
     """
