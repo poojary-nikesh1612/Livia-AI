@@ -35,7 +35,7 @@ async def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
     )
 
     try:
-        result: CropAgeExtraction = structured_llm.ainvoke(prompt)
+        result: CropAgeExtraction = await structured_llm.ainvoke(prompt)
     except Exception:
         logger.exception(f"LLM parsing failed for input: '{farmer_answer}'")
         result = CropAgeExtraction(is_understood=False, age_in_days=None)
@@ -67,13 +67,22 @@ async def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
     crop_stage = calculate_paddy_stage(age_days)
 
     new_cycle_id = None
+    location = state.get("location")
     if user_id:
         try:
             new_cycle_id = await create_crop_cycle(
                 user_id=uuid.UUID(str(user_id)), 
                 planting_date=planting_date_obj.date()
             )
-        except Exception :
+            if not location:
+                from database.postgres_ai import get_active_crop_context
+                crop_ctx = await get_active_crop_context(str(user_id))
+                if crop_ctx and crop_ctx.get("farm_latitude") is not None and crop_ctx.get("farm_longitude") is not None:
+                    location = {
+                        "lat": crop_ctx["farm_latitude"],
+                        "lon": crop_ctx["farm_longitude"],
+                    }
+        except Exception:
             logger.exception("Failed to create crop cycle DB record")
 
     return {
@@ -81,6 +90,7 @@ async def extract_crop_age_node(state: PaddyGraphState) -> dict[str, Any]:
         "crop_age_days": age_days,
         "planting_date": planting_date_iso,
         "crop_stage": crop_stage,
+        "location": location,
         "retry_count": 0,
         "paused_by": None,
         "clarifying_question": None,

@@ -62,4 +62,4 @@ async def follow_up_generation_node(state: PaddyGraphState) -> dict[str, Any]:
         follow_up_answer = None
 
     # Update the state
-        return {"final_diagnosis": follow_up_answer}
+    return {"final_diagnosis": follow_up_answer}
